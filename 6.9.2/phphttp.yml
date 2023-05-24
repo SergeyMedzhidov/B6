@@ -1,14 +1,37 @@
 ---
-- hosts: php
-  gather_facts: no
-  become: yes
-  roles:
-    - php
-    - users
-
-- hosts: http
-  gather_facts: no
-  become: yes
-  roles:
-    - http
-    - users
+# file nginx_php_fpm
+- name: Install Nginx
+  apt:
+    name: nginx
+    state: latest
+- name: install Php-fpm
+  apt: 
+    name: php7.0-fpm
+    state: latest
+- name: Configuration server
+  copy:
+    src: /home/vladimir/SkillFactory/ansible/roles/nginx_php_fpm/files/192.168.1.118.cfg
+    dest: /etc/nginx/sites-available/192.168.1.118
+- name: Remove default config from sites-enabled
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+- name: ceate symlink
+  file:
+    src: /etc/nginx/sites-available/192.168.1.118
+    dest: /etc/nginx/sites-enabled/192.168.1.118
+    state: link
+- name: Create index.php
+  copy:
+    src: /home/vladimir/SkillFactory/ansible/roles/nginx_php_fpm/files/index.php
+    dest: /var/www/html/index.php
+- name: Restart Nginx
+  service: 
+    name: nginx
+    state: restarted
+    enabled: yes
+- name: Restart php7.0-fpm
+  service:
+    name: php7.0-fpm
+    state: restarted
+    enabled: yes
